@@ -9,14 +9,14 @@ public class metofficeCrawler {
 	private static String api_key = "";
 	
 	public static void main(String[] args) {
+		
+		long time = System.currentTimeMillis();
+		
 		for (int i=0;i<args.length;i++) {
 			api_key = args[i];
 		}
 		
-		long time = System.currentTimeMillis();
 		csvWrapper forecastData;
-		
-		
 		forecastData = getForecastData.getForecast();
 		if (outputCSV.writetoCSV(forecastData)==1) { 
 			System.out.println("output file created");

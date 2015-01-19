@@ -88,5 +88,49 @@ public class siteLocations {
 		}
 		return ids;
 	}
+	
+	public static ArrayList<String> getScotSiteids() {
+		String url = "http://datapoint.metoffice.gov.uk/public/data/val/wxfcs/all/json/sitelist";
+		String charset = "UTF-8";
+		String param1 = api_key;
+		//String param2 = "value2";
+
+		try {
+			String query = String.format("key=%s", 
+					URLEncoder.encode(param1, charset)); 
+			//URLEncoder.encode(param2, charset));
+
+			URLConnection connection = new URL(url + "?" + query).openConnection();
+			connection.setRequestProperty("Accept-Charset", charset);
+			InputStream response = connection.getInputStream();
+
+			HttpURLConnection conn = (HttpURLConnection)connection;
+			int status = conn.getResponseCode();
+			//System.out.println(status);
+			for (Entry<String, List<String>> header : connection.getHeaderFields().entrySet()) {
+				//System.out.println(header.getKey() + "=" + header.getValue());
+			}
+			BufferedReader reader = new BufferedReader(new InputStreamReader(response, charset));
+			String json = reader.readLine();
+
+			JSONParser parser = new JSONParser();
+			Object resultObject = parser.parse(json);
+
+			JSONObject obj =(JSONObject)resultObject;
+			JSONObject locs =(JSONObject)obj.get("Locations");
+			JSONArray loc = (JSONArray)locs.get("Location");
+
+			
+			for (int i=0;i<loc.size();i++) {
+				JSONObject location = (JSONObject)loc.get(i);
+				String id = (String)location.get("id");
+				ids.add(id);
+			}
+			//System.out.println(ids.size());
+		} catch (IOException | ParseException e) {
+			e.printStackTrace();
+		}
+		return ids;
+	}
 }
 
