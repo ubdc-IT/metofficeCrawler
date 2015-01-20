@@ -56,6 +56,7 @@ public class getForecastData {
 		String charset = "UTF-8";
 		String param1 = res;
 		String param2 = api_key;
+		csvWrapper dataout = null;
 		
 		outputheaders.add("Data Timestamp");
 		outputheaders.add("Location ID");
@@ -65,8 +66,8 @@ public class getForecastData {
 		
 		location_ids = getForecastData.setLocation_ids();
 		
-		for (int i=0;i<1;i++) {
-			String id = "351582";
+		for (int i=0;i<location_ids.size();i++) {
+			String id = location_ids.get(i);
 			//String id = location_ids.get(i);
 			//System.out.println("id "+id);
 			try {
@@ -95,10 +96,12 @@ public class getForecastData {
 				JSONObject headers = (JSONObject)SiteRep.get("Wx");
 				//System.out.println(headers.keySet());
 				JSONArray params = (JSONArray)headers.get("Param");
-				for (int m=0;m<params.size();m++) {
-					JSONObject param = (JSONObject) params.get(m);
-					outputheaders.add((String)param.get("name"));
-					//System.out.println(outputheaders.get(m));
+				if (i==0) {
+					for (int m=0;m<params.size();m++) {
+						JSONObject param = (JSONObject) params.get(m);
+						outputheaders.add((String)param.get("name"));
+						//System.out.println(outputheaders.get(m));
+					}
 				}
 				JSONObject dv = (JSONObject)SiteRep.get("DV");
 				String forecastTime = (String)dv.get("dataDate");
@@ -159,9 +162,10 @@ public class getForecastData {
 				}
 			} catch (IOException | ParseException e) {
 				e.printStackTrace();
+				return dataout;
 			}
 		}
-		csvWrapper dataout = new csvWrapper(outputheaders,rows);
+		dataout = new csvWrapper(outputheaders,rows);
 		return dataout;
 	}
 
@@ -170,7 +174,7 @@ public class getForecastData {
 	}
 
 	static ArrayList<String> setLocation_ids() {
-		ArrayList<String>loc_ids = siteLocations.getSiteids();
+		ArrayList<String>loc_ids = siteLocations.getScotSiteids();
 		return loc_ids;
 	}
 }

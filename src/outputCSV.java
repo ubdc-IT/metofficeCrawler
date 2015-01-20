@@ -50,7 +50,7 @@ public class outputCSV {
 				q.println();
 			}
 			q.close();
-		} catch (IOException e) {
+		} catch (IOException | IndexOutOfBoundsException e) {
 			// give warning
 			System.out.println("cannot create output file: " + out.getName());
 			return 0;
