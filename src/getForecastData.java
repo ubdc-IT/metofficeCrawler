@@ -48,24 +48,47 @@ public class getForecastData {
 	static ArrayList<String> outputheaders = new ArrayList<String>();
 	static ArrayList<ArrayList<String>> rows = new ArrayList<ArrayList<String>>(); 
 	private static ArrayList<String> location_ids = null;
-	
-	
-	public static csvWrapper getForecast() {
+	private static metofficeCrawler.crawlTypes ct;
 
-		String url = "http://datapoint.metoffice.gov.uk/public/data/val/wxfcs/all/json/";
+	public static csvWrapper getForecast(metofficeCrawler.crawlTypes cT) {
+
+		ct = cT;
+		String url = null;
+		switch (ct) {
+		case F:	url = "http://datapoint.metoffice.gov.uk/public/data/val/wxfcs/all/json/";
+		break;
+		case O: url = "http://datapoint.metoffice.gov.uk/public/data/val/wxobs/all/json/";
+		res = "hourly";
+		break;
+		case I:	url = "http://datapoint.metoffice.gov.uk/public/data/val/wxfcs/all/json/";
+		break;
+		}
+
 		String charset = "UTF-8";
 		String param1 = res;
 		String param2 = api_key;
 		csvWrapper dataout = null;
-		
+
 		outputheaders.add("Data Timestamp");
 		outputheaders.add("Location ID");
 		outputheaders.add("Location Name");
-		outputheaders.add("Forecast For Date");
-		outputheaders.add("Forecast Type");
-		
+		switch (ct) {
+		case F:	
+			outputheaders.add("Forecast For Date");
+			outputheaders.add("Forecast Type");
+			break;
+		case O:	
+			outputheaders.add("Obs For Date");	
+			outputheaders.add("Obs mins since midnight");
+			break;
+		case I:	
+			outputheaders.add("Images For Date");
+			outputheaders.add("Images Type");
+			break;
+		}
+
 		location_ids = getForecastData.setLocation_ids();
-		
+
 		for (int i=0;i<location_ids.size();i++) {
 			String id = location_ids.get(i);
 			//String id = location_ids.get(i);
@@ -106,41 +129,52 @@ public class getForecastData {
 				JSONObject dv = (JSONObject)SiteRep.get("DV");
 				String forecastTime = (String)dv.get("dataDate");
 				//System.out.println(String.format("data ts = %s", forecastTime));
-				JSONObject location = (JSONObject)dv.get("Location");
-				String loc_name = (String)location.get("name");
-				JSONArray forecasts = (JSONArray)location.get("Period");
+				Object location = null;
+				String loc_name = "";
+				switch (ct) {
+				case F:	location = (JSONObject)dv.get("Location");
+				break;
+				case O: location = (JSONArray)dv.get("Location");
+				break;
+				case I: location = (JSONObject)dv.get("Location");
+				break;
+				}
+				switch (ct) {
+				case F:	
+					loc_name = (String)((JSONObject)location).get("name");
+					JSONArray forecasts = (JSONArray)((JSONObject)location).get("Period");
 
-				for (int j=0;j<forecasts.size();j++) {
-					JSONObject forecast = (JSONObject)forecasts.get(j);
-					//System.out.println(forecast.keySet());
-					String forecastFor = (String)forecast.get("value");
-					//System.out.println("Forecast for date = "+forecastFor);
-					JSONArray report = (JSONArray)forecast.get("Rep");
-					//System.out.println("report size "+report.size());
-					for (int k=0;k<report.size();k++) {
-						JSONObject rep = (JSONObject) report.get(k);
-						ArrayList<String> datarow = new ArrayList<String>();
-						datarow.add(forecastTime);
-						datarow.add(id);
-						datarow.add(loc_name);
-						datarow.add(forecastFor);
-						//System.out.println(rep.keySet());
-						//System.out.println(rep.get("$"));
-						if (rep.get("$").equals("Day")) {
-							datarow.add("Day");
-							if (dayheaders.isEmpty()) {
-								dayheaders = new ArrayList<String>(rep.keySet());
+					for (int j=0;j<forecasts.size();j++) {
+						JSONObject forecast = (JSONObject)forecasts.get(j);
+						//System.out.println(forecast.keySet());
+						String forecastFor = (String)forecast.get("value");
+						//System.out.println("Forecast for date = "+forecastFor);
+						JSONArray report = (JSONArray)forecast.get("Rep");
+						//System.out.println("report size "+report.size());
+						for (int k=0;k<report.size();k++) {
+							JSONObject rep = (JSONObject) report.get(k);
+							ArrayList<String> datarow = new ArrayList<String>();
+							datarow.add(forecastTime);
+							datarow.add(id);
+							datarow.add(loc_name);
+							datarow.add(forecastFor);
+							//System.out.println(rep.keySet());
+							//System.out.println(rep.get("$"));
+							if (rep.get("$").equals("Day")) {
+								datarow.add("Day");
+								if (dayheaders.isEmpty()) {
+									dayheaders = new ArrayList<String>(rep.keySet());
 								}
-							for (int n=5;n<outputheaders.size();n++) {
-								//System.out.println("n="+n+" "+dayheaders.contains(outputheaders.get(n)));
-								if (dayheaders.contains(outputheaders.get(n))) {
-									datarow.add((String)rep.get(outputheaders.get(n)));
-									//System.out.println("unit = "+outputheaders.get(n)+"\tvalue = "+datarow.get(n));
-								} else {
-									datarow.add("");
+								for (int n=5;n<outputheaders.size();n++) {
+									//System.out.println("n="+n+" "+dayheaders.contains(outputheaders.get(n)));
+									if (dayheaders.contains(outputheaders.get(n))) {
+										datarow.add((String)rep.get(outputheaders.get(n)));
+										//System.out.println("unit = "+outputheaders.get(n)+"\tvalue = "+datarow.get(n));
+									} else {
+										datarow.add("");
+									}
 								}
-							}
-							rows.add(datarow);
+								rows.add(datarow);
 							} else {
 								datarow.add("Night");
 								if (nightheaders.isEmpty()) {
@@ -157,8 +191,45 @@ public class getForecastData {
 								}
 								rows.add(datarow);
 							}
-						
+
+						}
 					}
+					break;
+				case O:
+					for (int o=0;o<((JSONArray)location).size();o++) {
+						loc_name = (String)((JSONObject)((JSONArray)location).get(o)).get("name");
+						String loc_id = (String)((JSONObject)((JSONArray)location).get(o)).get("i");
+						JSONArray observations = (JSONArray)((JSONObject)((JSONArray)location).get(o)).get("Period");
+						for (int j=0;j<observations.size();j++) {
+							JSONObject observation = (JSONObject)observations.get(j);
+							//System.out.println(forecast.keySet());
+							String observationsFor = (String)observation.get("value");
+							//System.out.println("Forecast for date = "+forecastFor);
+							//System.out.println(observation.keySet());
+							//System.out.println(observation.get("Rep"));
+							JSONArray report = (JSONArray) ((JSONObject)observation).get("Rep");
+							//System.out.println("report size "+report.size());
+							for (int k=0;k<report.size();k++) {
+								JSONObject rep = (JSONObject) (report.get(k));
+								ArrayList<String> datarow = new ArrayList<String>();
+								datarow.add(forecastTime);
+								datarow.add(loc_id);
+								datarow.add(loc_name);
+								datarow.add(observationsFor);
+								//System.out.println(rep.keySet());
+								//System.out.println(rep.get("$"));
+								datarow.add((String)rep.get("$"));
+								for (int n=5;n<outputheaders.size();n++) {
+									datarow.add((String)rep.get(outputheaders.get(n)));
+									//System.out.println("unit = "+outputheaders.get(n)+"\tvalue = "+datarow.get(n));
+								}
+								rows.add(datarow);
+							}
+						}
+					}
+					break;
+				case I:
+					break;
 				}
 			} catch (IOException | ParseException e) {
 				e.printStackTrace();
@@ -174,7 +245,15 @@ public class getForecastData {
 	}
 
 	static ArrayList<String> setLocation_ids() {
-		ArrayList<String>loc_ids = siteLocations.getScotSiteids();
+		ArrayList<String>loc_ids = null; 
+		switch (ct) {
+		case F: loc_ids = siteLocations.getScotSiteids();
+		break;
+		case O: loc_ids = siteLocations.getObsIds();
+		break;
+		case I: loc_ids = siteLocations.getScotSiteids();
+		break;
+		}
 		return loc_ids;
 	}
 }
@@ -182,7 +261,7 @@ public class getForecastData {
 class csvWrapper {
 	ArrayList<String> headers;
 	ArrayList<ArrayList<String>> data;
-	
+
 	public csvWrapper(ArrayList<String> h, ArrayList<ArrayList<String>> d) {
 		headers = h;
 		data = d;

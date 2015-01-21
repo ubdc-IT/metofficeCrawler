@@ -109,5 +109,9 @@ public class siteLocations {
 			csv.close();
 		return ids;
 	}
+	public static ArrayList<String> getObsIds() {
+		ids.add("all");
+		return ids;
+	}
 }
 

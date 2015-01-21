@@ -15,12 +15,22 @@ public class outputCSV {
 	static File out = null;
 	static int hflag = 0;
 
-	public static int writetoCSV(csvWrapper c) {
+	public static int writetoCSV(csvWrapper c,metofficeCrawler.crawlTypes t) {
 		Date ts = new Date();
 		Timestamp ts_string = new Timestamp(ts.getTime());
 		ArrayList<String> headers = c.headers;
 		ArrayList<ArrayList<String>> rows = c.data;
-		out = new File("outputForecast_test.csv");
+		switch (t) {
+		case F:	
+			out = new File("outputForecast_test1.csv");
+			break;
+		case O:
+			out = new File("outputObservation_test.csv");
+			break;
+		case I:
+			out = new File("outputImagesMetadata_test.csv");
+			break;
+		}
 		if (out.exists())
 			hflag = 1;
 		PrintWriter q;
