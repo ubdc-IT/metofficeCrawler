@@ -199,18 +199,63 @@ public class getForecastData {
 					for (int o=0;o<((JSONArray)location).size();o++) {
 						loc_name = (String)((JSONObject)((JSONArray)location).get(o)).get("name");
 						String loc_id = (String)((JSONObject)((JSONArray)location).get(o)).get("i");
-						JSONArray observations = (JSONArray)((JSONObject)((JSONArray)location).get(o)).get("Period");
-						for (int j=0;j<observations.size();j++) {
-							JSONObject observation = (JSONObject)observations.get(j);
+						//System.out.println(((JSONObject)((JSONArray)location).get(o)).get("Period"));
+						Object observations = ((JSONObject)((JSONArray)location).get(o)).get("Period");
+						if (observations instanceof JSONArray) {
+							for (int j=0;j<((JSONArray)observations).size();j++) {
+								JSONObject observation = (JSONObject)((JSONArray)observations).get(j);
+								//System.out.println(forecast.keySet());
+								String observationsFor = (String)observation.get("value");
+								//System.out.println("Forecast for date = "+forecastFor);
+								//System.out.println(observation.keySet());
+								//System.out.println(observation.get("Rep"));
+								Object report = ((JSONObject)observation).get("Rep");
+								if (report instanceof JSONArray) {
+								//System.out.println("report size "+report.size());
+								for (int k=0;k<((JSONArray)report).size();k++) {
+									JSONObject rep = (JSONObject) (((JSONArray)report).get(k));
+									ArrayList<String> datarow = new ArrayList<String>();
+									datarow.add(forecastTime);
+									datarow.add(loc_id);
+									datarow.add(loc_name);
+									datarow.add(observationsFor);
+									//System.out.println(rep.keySet());
+									//System.out.println(rep.get("$"));
+									datarow.add((String)rep.get("$"));
+									for (int n=5;n<outputheaders.size();n++) {
+										datarow.add((String)rep.get(outputheaders.get(n)));
+										//System.out.println("unit = "+outputheaders.get(n)+"\tvalue = "+datarow.get(n));
+									}
+									rows.add(datarow);
+								}
+								} else if (report instanceof JSONObject) {
+									ArrayList<String> datarow = new ArrayList<String>();
+									datarow.add(forecastTime);
+									datarow.add(loc_id);
+									datarow.add(loc_name);
+									datarow.add(observationsFor);
+									//System.out.println(rep.keySet());
+									//System.out.println(rep.get("$"));
+									datarow.add((String)((JSONObject)report).get("$"));
+									for (int n=5;n<outputheaders.size();n++) {
+										datarow.add((String)((JSONObject)report).get(outputheaders.get(n)));
+										//System.out.println("unit = "+outputheaders.get(n)+"\tvalue = "+datarow.get(n));
+									}
+									rows.add(datarow);
+								}
+							}
+						} else if (observations instanceof JSONObject) { 
 							//System.out.println(forecast.keySet());
-							String observationsFor = (String)observation.get("value");
+							String observationsFor = (String)((JSONObject)observations).get("value");
 							//System.out.println("Forecast for date = "+forecastFor);
 							//System.out.println(observation.keySet());
 							//System.out.println(observation.get("Rep"));
-							JSONArray report = (JSONArray) ((JSONObject)observation).get("Rep");
 							//System.out.println("report size "+report.size());
-							for (int k=0;k<report.size();k++) {
-								JSONObject rep = (JSONObject) (report.get(k));
+							Object report = ((JSONObject)observations).get("Rep");
+							if (report instanceof JSONArray) {
+							//System.out.println("report size "+report.size());
+							for (int k=0;k<((JSONArray)report).size();k++) {
+								JSONObject rep = (JSONObject) (((JSONArray)report).get(k));
 								ArrayList<String> datarow = new ArrayList<String>();
 								datarow.add(forecastTime);
 								datarow.add(loc_id);
@@ -221,6 +266,21 @@ public class getForecastData {
 								datarow.add((String)rep.get("$"));
 								for (int n=5;n<outputheaders.size();n++) {
 									datarow.add((String)rep.get(outputheaders.get(n)));
+									//System.out.println("unit = "+outputheaders.get(n)+"\tvalue = "+datarow.get(n));
+								}
+								rows.add(datarow);
+							}
+							} else if (report instanceof JSONObject) {
+								ArrayList<String> datarow = new ArrayList<String>();
+								datarow.add(forecastTime);
+								datarow.add(loc_id);
+								datarow.add(loc_name);
+								datarow.add(observationsFor);
+								//System.out.println(rep.keySet());
+								//System.out.println(rep.get("$"));
+								datarow.add((String)((JSONObject)report).get("$"));
+								for (int n=5;n<outputheaders.size();n++) {
+									datarow.add((String)((JSONObject)report).get(outputheaders.get(n)));
 									//System.out.println("unit = "+outputheaders.get(n)+"\tvalue = "+datarow.get(n));
 								}
 								rows.add(datarow);
