@@ -114,6 +114,7 @@ public class getForecastData {
 				Object resultObject = parser.parse(json);
 
 				JSONObject obj = (JSONObject)resultObject;
+				System.out.println(obj);
 
 				JSONObject SiteRep = (JSONObject)obj.get("SiteRep");
 				JSONObject headers = (JSONObject)SiteRep.get("Wx");

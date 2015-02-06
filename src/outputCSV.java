@@ -18,6 +18,7 @@ public class outputCSV {
 	public static int writetoCSV(csvWrapper c,metofficeCrawler.crawlTypes t) {
 		Date ts = new Date();
 		Timestamp ts_string = new Timestamp(ts.getTime());
+		System.out.println("^ "+ts);
 		ArrayList<String> headers = c.headers;
 		ArrayList<ArrayList<String>> rows = c.data;
 		switch (t) {
